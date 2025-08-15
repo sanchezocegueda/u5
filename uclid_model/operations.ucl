@@ -122,10 +122,6 @@ module c3 {
         // Get the linear address bundle and value
         call (addr_bundle_g) = ghost_ca_decrypt(ghost_lmap[lind_addr], pkey);
 
-        // addr_bundle must be plaintext (unencrypted)
-        // TODO: we need to relax this eventually
-        // assume(non_pln_addr_points_to_unprotected_mem(addr_bundle_g));
-        // addr_bundle must be handle type
 
         // extract fields
         h_base = addr_bundle_g.h_base;
@@ -204,10 +200,6 @@ module c3 {
         // Get the linear address bundle and value
         call (addr_bundle_g) = ghost_ca_decrypt(ghost_lmap[lind_addr], pkey);
 
-        // addr_bundle must be plaintext (unencrypted)
-        // TODO: we need to relax this eventually
-        // assume(non_pln_addr_points_to_unprotected_mem(addr_bundle_g));
-        // addr_bundle must be handle type
         
         // extract fields
         h_base = addr_bundle_g.h_base;
@@ -246,10 +238,6 @@ module c3 {
         if (oldcell_alloc) {
             // in this case, write is invalid, and there is a fault
         } else {
-            // cell_alloc = true;
-            // cell_data = enc_cell_data;
-            // cell_data_g = enc_cell_data_g;
-
             // Decrypted data is placed as in in the local variable map
             ghost_mem[addr] = enc_cell_data_g;
             // Debugging probe

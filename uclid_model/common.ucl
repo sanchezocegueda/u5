@@ -9,8 +9,8 @@ module common {
 
     type lmapind_t = bv3;
 
-    // Unkeyed, Attacker, and Victim keys
-    type key_t = enum { NoKey, AtKey, ViKey };
+    // Attacker, and Victim keys
+    type key_t = enum { AtKey, ViKey };
     
     type nonce_t;
 
@@ -29,7 +29,7 @@ module common {
         // Raw value
         value: word_t,
 
-        // Value state
+        // Value state (i.e. is this a handle or a raw value?)
         vtype: value_t,
 
         // Handle elements

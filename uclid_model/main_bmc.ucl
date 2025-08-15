@@ -22,12 +22,13 @@ module main
         v' = true;
     }
 
-    // This the global security property
+    // This the global confidentiality property
     property load_msv_implies_ni : c3_instance.msv_curr ==> (
         !c3_instance.observable.valid 
         || (c3_instance.observable.data_g.enc_state != Pln())
     );
 
+    // This is the integrity property
     property store_msv_implies_integrityviolation : (
         forall (a: word_t) :: ((!c3_instance.alloc_map[a]) || (
             is_DEnc(c3_instance.ghost_mem[a].enc_state) &&
@@ -144,42 +145,8 @@ module main
     );
 
 
-    // property shadow_state_non_overlapping_l : (
-    //     forall (a: word_t) :: (
-    //         c3_instance.shadow_mem[a].alloc ==> (
-    //             c3_instance.shadow_mem[c3_instance.shadow_mem[a].lowend].alloc
-    //             && (c3_instance.shadow_mem[c3_instance.shadow_mem[a].lowend].lowend
-    //                 == c3_instance.shadow_mem[a].lowend
-    //             ) 
-    //             && (c3_instance.shadow_mem[c3_instance.shadow_mem[a].lowend].highend
-    //                 == c3_instance.shadow_mem[a].highend
-    //             )
-    //         )
-    //     )
-    // );
-
-    // property shadow_state_non_overlapping_r : (
-    //     forall (a: word_t) :: (
-    //         c3_instance.shadow_mem[a].alloc ==> (
-    //             c3_instance.shadow_mem[c3_instance.shadow_mem[a].highend-one].alloc
-    //             && (c3_instance.shadow_mem[c3_instance.shadow_mem[a].highend-one].lowend
-    //                 == c3_instance.shadow_mem[a].lowend
-    //             ) 
-    //             && (c3_instance.shadow_mem[c3_instance.shadow_mem[a].highend-one].highend
-    //                 == c3_instance.shadow_mem[a].highend
-    //             )
-    //         )
-    //     )
-    // );
-
     // spec
     control {
-        // set_solver_option(":mbqi", false);
-        // set_solver_option(":case_split", 0);
-        // set_solver_option(":relevancy", 0);
-        // set_solver_option(":threads", 4);
-        // set_solver_option(":blast_full", true);
-        // set_solver_option(":timeout", 480000);      
         v = induction;
         check;
         print_results;

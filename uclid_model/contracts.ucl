@@ -3,8 +3,6 @@
 module c3 {
 
 
-    /* Just a bunch of macros */
-
     define addr_must_be_handle (ghost_addr_bundle : ghost_data_t) : boolean = 
         (ghost_addr_bundle.vtype == HAN);
 
