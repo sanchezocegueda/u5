@@ -1,0 +1,188 @@
+module main
+{
+    type * = common.*;
+    const * = common.*;
+
+    define * = c3.*;
+    function * = c3.*;
+
+    instance c3_instance : c3();
+
+    var v: boolean;
+
+    // init
+    init {
+        v = false;
+    }
+
+    next {
+        if (v) {
+            next(c3_instance);
+        }
+        v' = true;
+    }
+
+    // This the global security property
+    property load_msv_implies_ni : c3_instance.msv_curr ==> (
+        !c3_instance.observable.valid 
+        || (c3_instance.observable.data_g.enc_state != Pln())
+    );
+
+    property store_msv_implies_integrityviolation : (
+        forall (a: word_t) :: ((!c3_instance.alloc_map[a]) || (
+            is_DEnc(c3_instance.ghost_mem[a].enc_state) &&
+            (c3_instance.ghost_mem[a].ca_nonce_true 
+                == c3_instance.ghost_mem[a].enc_state.DEnc_nonce)
+        ) || (
+            is_garbled(c3_instance.ghost_mem[a].enc_state)
+        ))
+    );
+    
+    property shadow_state_alloc_matches_alloc : (
+        forall (a: word_t) :: (
+            c3_instance.alloc_map[a] == c3_instance.shadow_mem[a].alloc
+        )
+    );
+    
+    property shadow_state_interval_matches_ca_nonce_true : (
+        forall (a: word_t) :: ((!c3_instance.shadow_mem[a].alloc) || (
+            slot_to_nonce(c3_instance.shadow_mem[a].lowend, c3_instance.shadow_mem[a].highend) 
+                == c3_instance.ghost_mem[a].ca_nonce_true
+        ))
+    );
+
+    property shadow_state_interval_is_memory_safe : (
+        forall (a: word_t) :: ((!c3_instance.shadow_mem[a].alloc) || (
+            between (a, c3_instance.shadow_mem[a].lowend, c3_instance.shadow_mem[a].highend)
+        ))
+    );
+
+    property handle_sizes_are_nonzero : (
+        (forall (a: word_t) :: (handles_are_valid(c3_instance.ghost_mem[a])))
+        && (forall (l: lmapind_t) :: (handles_are_valid(c3_instance.ghost_lmap[l])))
+    );
+
+    property mem_handles_are_summarized_in_shadow_state : (
+        forall (a: word_t) :: (
+            (c3_instance.alloc_map[a] && c3_instance.ghost_mem[a].vtype == HAN) 
+                ==> ((c3_instance.shadow_mem[c3_instance.ghost_mem[a].h_base].lowend 
+                        == c3_instance.ghost_mem[a].h_base) 
+                    && (c3_instance.shadow_mem[c3_instance.ghost_mem[a].h_base].highend 
+                        == (c3_instance.ghost_mem[a].h_base + c3_instance.ghost_mem[a].h_length))
+                    && c3_instance.shadow_mem[c3_instance.ghost_mem[a].h_base].alloc
+                )
+        )
+    );
+    
+    property lmap_handles_are_summarized_in_shadow_state : (
+        forall (l: lmapind_t) :: (
+            (c3_instance.ghost_lmap[l].vtype == HAN)
+                ==> ((c3_instance.shadow_mem[c3_instance.ghost_lmap[l].h_base].lowend 
+                        == c3_instance.ghost_lmap[l].h_base) 
+                    && (c3_instance.shadow_mem[c3_instance.ghost_lmap[l].h_base].highend 
+                        == (c3_instance.ghost_lmap[l].h_base + c3_instance.ghost_lmap[l].h_length))
+                    && c3_instance.shadow_mem[c3_instance.ghost_lmap[l].h_base].alloc
+                )
+        )
+    );
+
+    property shadow_state_non_overlapping_intervals : (
+        forall (a1: word_t) :: (
+            forall (a2: word_t) :: ((
+                    c3_instance.shadow_mem[a1].alloc && c3_instance.shadow_mem[a2].alloc
+                ) ==> (
+                    non_overlapping_ranges (
+                        c3_instance.shadow_mem[a1].lowend,
+                        c3_instance.shadow_mem[a1].highend,
+                        c3_instance.shadow_mem[a2].lowend,
+                        c3_instance.shadow_mem[a2].highend
+                    ) || (
+                        c3_instance.shadow_mem[a1].lowend == c3_instance.shadow_mem[a2].lowend
+                        && c3_instance.shadow_mem[a1].highend == c3_instance.shadow_mem[a2].highend
+                    )
+                )
+            )
+        )
+    );
+
+    property shadow_state_consistent_intervals : (
+        forall (a1: word_t) :: (
+            forall (a2: word_t) :: ((
+                    c3_instance.shadow_mem[a1].alloc &&
+                    between (a2, c3_instance.shadow_mem[a1].lowend, c3_instance.shadow_mem[a1].highend)
+                ) ==> (
+                    c3_instance.shadow_mem[a1].lowend == c3_instance.shadow_mem[a2].lowend
+                    && c3_instance.shadow_mem[a1].highend == c3_instance.shadow_mem[a2].highend
+                    && c3_instance.shadow_mem[a2].alloc
+                )
+            )
+        )
+    );
+
+    // For valid handles, raw value is the same as handle value
+    property mem_value_matches_handles : (
+        forall (a: word_t) :: (
+            (c3_instance.ghost_mem[a].vtype == HAN) ==> 
+            (
+                c3_instance.ghost_mem[a].value == (
+                    c3_instance.ghost_mem[a].h_base + c3_instance.ghost_mem[a].h_offset
+                )
+            )
+        )
+    );
+
+    // For valid handles, raw value is the same as handle value
+    property lmap_value_matches_handles : (
+        forall (a: lmapind_t) :: (
+            (c3_instance.ghost_lmap[a].vtype == HAN) ==> 
+            (
+                c3_instance.ghost_lmap[a].value == (
+                    c3_instance.ghost_lmap[a].h_base + c3_instance.ghost_lmap[a].h_offset
+                )
+            )
+        )
+    );
+
+
+    // property shadow_state_non_overlapping_l : (
+    //     forall (a: word_t) :: (
+    //         c3_instance.shadow_mem[a].alloc ==> (
+    //             c3_instance.shadow_mem[c3_instance.shadow_mem[a].lowend].alloc
+    //             && (c3_instance.shadow_mem[c3_instance.shadow_mem[a].lowend].lowend
+    //                 == c3_instance.shadow_mem[a].lowend
+    //             ) 
+    //             && (c3_instance.shadow_mem[c3_instance.shadow_mem[a].lowend].highend
+    //                 == c3_instance.shadow_mem[a].highend
+    //             )
+    //         )
+    //     )
+    // );
+
+    // property shadow_state_non_overlapping_r : (
+    //     forall (a: word_t) :: (
+    //         c3_instance.shadow_mem[a].alloc ==> (
+    //             c3_instance.shadow_mem[c3_instance.shadow_mem[a].highend-one].alloc
+    //             && (c3_instance.shadow_mem[c3_instance.shadow_mem[a].highend-one].lowend
+    //                 == c3_instance.shadow_mem[a].lowend
+    //             ) 
+    //             && (c3_instance.shadow_mem[c3_instance.shadow_mem[a].highend-one].highend
+    //                 == c3_instance.shadow_mem[a].highend
+    //             )
+    //         )
+    //     )
+    // );
+
+    // spec
+    control {
+        // set_solver_option(":mbqi", false);
+        // set_solver_option(":case_split", 0);
+        // set_solver_option(":relevancy", 0);
+        // set_solver_option(":threads", 4);
+        // set_solver_option(":blast_full", true);
+        // set_solver_option(":timeout", 480000);      
+        v = induction;
+        check;
+        print_results;
+        v.print_cex_json();
+    }
+}
