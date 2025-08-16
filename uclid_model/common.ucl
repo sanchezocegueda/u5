@@ -75,6 +75,12 @@ module common {
         newamap : alloc_map_t
     };
 
+    // Action performed by the process
+    type action_t = enum { 
+        MALLOC, FREE, LOAD, STORE, HANOP, ARITHOP
+    };
+
+
     // Constants
     const zero  : word_t = 0bv2;
     const one   : word_t = 1bv2;

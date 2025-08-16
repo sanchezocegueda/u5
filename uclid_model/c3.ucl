@@ -36,11 +36,6 @@ module c3 {
     var src2_probe_g    : ghost_data_t;
 
 
-    // Action performed by the process
-    type action_t = enum { 
-        MALLOC, FREE, LOAD, STORE, HANOP, ARITHOP
-    };
-
     // Temporary local variable indices
     var opcode : opcode_t;
     var l1, l2, l3: lmapind_t;
