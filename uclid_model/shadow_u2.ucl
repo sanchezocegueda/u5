@@ -1,6 +1,6 @@
 
 
-module c3 {
+module u2 {
 
     // Ghost memory with slots information
     var shadow_mem: shadow_mem_t;

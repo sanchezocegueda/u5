@@ -1,6 +1,6 @@
 
 
-module c3 {
+module u2 {
 
     // Encryption and decryption functions: these are left uninterpreted
     function cdecrypt (addr_in: word_t, key: key_t) : word_t;

@@ -1,6 +1,6 @@
 
 
-module c3 {
+module u2 {
 
     type * = common.*;
 

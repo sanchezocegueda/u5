@@ -1,6 +1,6 @@
 
 
-module c3 {
+module u2 {
 
 
     define addr_must_be_handle (ghost_addr_bundle : ghost_data_t) : boolean = 

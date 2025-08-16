@@ -1,6 +1,6 @@
 
 
-module c3 {
+module u2 {
 
     function hanop_fun (oldoff: word_t, operand: word_t) : word_t;
 
